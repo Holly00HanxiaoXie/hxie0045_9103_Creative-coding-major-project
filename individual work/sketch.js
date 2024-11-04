@@ -1,10 +1,8 @@
 let song, analyser;
 let playButton, pauseButton;
-
 function preload() {
   song = loadSound('assets/individual work music.mp3');
 }
-
 // Base Configuration Class
 class PatternConfig {
   static shared = {
@@ -20,7 +18,6 @@ class PatternConfig {
     borderSize: 350      
   };
 }
-
 // Base Circular Pattern Class
 class CircularPattern {
   constructor(x, y, scale = 1) {
@@ -29,16 +26,40 @@ class CircularPattern {
     this.scale = scale;
     this.config = PatternConfig.shared;
   }
-
   // Method to apply random movement when music is playing
-  //moveRandomly() defined in the code
-  //that is used to make the pattern move randomly when music plays.
-  moveRandomly() {
-    if (song.isPlaying()) {
-      this.x += random(-5, 5); // Small random horizontal movement
-      this.y += random(-5, 5); // Small random vertical movement
-    }
+  // Method to apply random movement when music is playing and keep within canvas bounds
+  // As the music plays, make the pattern move and bounce in random directions.
+  //Bounds checking ensures that the pattern moves within 
+  //the canvas and bounces when it hits the boundaries.
+moveRandomly() {
+  if (song.isPlaying()) {
+    // Define a new angle for circular movement and a speed multiplier
+this.angle = this.angle || random(TWO_PI); // Initial random angle
+this.speed = 2; // Movement speed (adjust as needed)
+// Use sin and cos to determine movement direction
+this.x += this.speed * cos(this.angle);
+this.y += this.speed * sin(this.angle);
+// Increment the angle to change direction over time
+this.angle += 0.05; // Adjust this value to control turning rate
+// Boundary check to keep the pattern within the canvas
+const halfBorderSize = this.config.borderSize * this.scale / 2;
+if (this.x < halfBorderSize) {
+  this.x = halfBorderSize;
+  this.angle = PI - this.angle; // Reflect angle horizontally
+} else if (this.x > width - halfBorderSize) {
+  this.x = width - halfBorderSize;
+  this.angle = PI - this.angle;
+}
+if (this.y < halfBorderSize) {
+  this.y = halfBorderSize;
+  this.angle = -this.angle; // Reflect angle vertically
+} else if (this.y > height - halfBorderSize) {
+  this.y = height - halfBorderSize;
+  this.angle = -this.angle;
+}
   }
+}
+
   drawBorderDecoration() {
     stroke(0);
     strokeWeight(5 * this.scale);
@@ -407,5 +428,4 @@ function windowResized() {
   playButton.position(20, 20);
   pauseButton.position(80, 20);
 }
-
 
