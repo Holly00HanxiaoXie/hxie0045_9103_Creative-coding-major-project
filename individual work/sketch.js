@@ -18,6 +18,7 @@ class PatternConfig {
     borderSize: 350      
   };
 }
+
 // Base Circular Pattern Class
 class CircularPattern {
   constructor(x, y, scale = 1) {
