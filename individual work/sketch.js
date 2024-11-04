@@ -6,7 +6,6 @@ function preload() {
 }
 
 // Base Configuration Class
-//configuration class that defines the basic parameters shared by all patterns
 class PatternConfig {
   static shared = {
     numCircles: 50,      
@@ -30,6 +29,16 @@ class CircularPattern {
     this.scale = scale;
     this.config = PatternConfig.shared;
   }
+
+  // Method to apply random movement when music is playing
+  //moveRandomly() defined in the code
+  //that is used to make the pattern move randomly when music plays.
+  moveRandomly() {
+    if (song.isPlaying()) {
+      this.x += random(-5, 5); // Small random horizontal movement
+      this.y += random(-5, 5); // Small random vertical movement
+    }
+  }
   drawBorderDecoration() {
     stroke(0);
     strokeWeight(5 * this.scale);
@@ -37,7 +46,6 @@ class CircularPattern {
     circle(this.x, this.y, this.config.borderSize * this.scale);
     const radius = 175 * this.scale;
     const sizes = this.config.borderCircleSizes;
-    
     this.drawCircleRing(radius, this.config.numBorderCircles, sizes.outer, color(252, 101, 13));
     this.drawCircleRing(radius, this.config.numBorderCircles, sizes.middle, color(0));
     this.drawCircleRing(radius, this.config.numBorderCircles, sizes.inner, color(255));
@@ -56,7 +64,6 @@ class CircularPattern {
     noFill();
     stroke(strokeColor);
     strokeWeight(weight * this.scale);
-    
     for (let i = 0; i < count; i++) {
       const angle = TWO_PI / count * i;
       const x1 = this.x + innerRadius * cos(angle);
@@ -87,9 +94,9 @@ class CircularPattern {
     });
   }
 }
-
 class PurplePattern extends CircularPattern {
   draw() {
+    this.moveRandomly(); // Apply random movement if music is playing
     this.drawConcentricCircle(280, color(232,179,174));
     this.drawConcentricCircle(140, color(166,199,198), color(247, 20, 73), 4);
     this.drawConcentricCircle(70, color(222,118,146), color(200, 200, 50));
@@ -114,6 +121,7 @@ class PurplePattern extends CircularPattern {
 // Second pattern
 class OrangePattern extends CircularPattern {
   draw() {
+    this.moveRandomly(); 
     // Main circle-purple
     this.drawConcentricCircle(280, color(191,148,173));
     
@@ -163,6 +171,7 @@ class OrangePattern extends CircularPattern {
 // third pattern
 class OrangeCirclePattern extends CircularPattern {
   draw() {
+    this.moveRandomly(); 
     // main circle
     this.drawConcentricCircle(280, color(113,187,204));
     this.drawConcentricCircle(150, color(122,175,205), color(238,232,58), 6);
@@ -179,6 +188,7 @@ class OrangeCirclePattern extends CircularPattern {
 // forth pattern
 class GreenPattern extends CircularPattern {
   draw() {
+    this.moveRandomly(); 
     this.drawConcentricCircle(280, color(207,170,99));
     this.drawRadialLines(75 * this.scale, 140 * this.scale, 50, color(255, 0, 0), 1.7);
     this.drawConcentricCircle(150, color(157,186,154));
@@ -217,6 +227,7 @@ class GreenPattern extends CircularPattern {
 // The fifth pattern: white theme
 class WhitePattern extends CircularPattern {
   draw() {
+    this.moveRandomly(); 
     let radius = 140;
     // main circle
     this.drawConcentricCircle(radius * 2, color(241,146,84));
@@ -259,6 +270,7 @@ class WhitePattern extends CircularPattern {
 class YellowOrangePattern extends CircularPattern {
   // Override the draw method to define the specific pattern to be drawn
   draw() {
+    this.moveRandomly(); 
     // Main circle
     this.drawConcentricCircle(280, color(132,123,167));
     
@@ -296,8 +308,8 @@ class YellowOrangePattern extends CircularPattern {
     this.drawConcentricRings([130, 120, 110, 100, 90, 80], 5, color(152, 109, 185));
   }
 }
-
-
+// Add other pattern classes here (e.g., OrangePattern, OrangeCirclePattern, etc.)
+// Each class should include `this.moveRandomly();` at the beginning of the `draw` function
 class PatternManager {
   constructor() {
     this.patterns = [];
@@ -308,39 +320,10 @@ class PatternManager {
       GreenPattern,
       WhitePattern,
       YellowOrangePattern,
-      
     ];
-    
     this.minPatterns = 20;
     this.maxAttempts = 100;
   }
-  //Check if the patterns overlap
-  checkOverlap(x, y, size) {
-    for (let pattern of this.patterns) {
-      const dx = x - pattern.x;
-      const dy = y - pattern.y;
-      const distance = sqrt(dx * dx + dy * dy);
-      const minDistance = (size + pattern.size) / 2;
-      
-      if (distance < minDistance) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  getRandomPosition() {
-    const minSize = min(windowWidth, windowHeight) * 0.15;
-    const maxSize = min(windowWidth, windowHeight) * 0.25;
-    const size = random(minSize, maxSize);
-    
-    const margin = size / 2;
-    const x = random(margin, windowWidth - margin);
-    const y = random(margin, windowHeight - margin);
-    
-    return { x, y, size };
-  }
-
   createPatterns() {
     this.patterns = [];
     const maxPatterns = 30;
@@ -349,104 +332,80 @@ class PatternManager {
     
     while (this.patterns.length < maxPatterns && attemptsCount < maxTotalAttempts) {
       const { x, y, size } = this.getRandomPosition();
-      
       if (!this.checkOverlap(x, y, size)) {
         const PatternClass = random(this.patternClasses);
         const scale = size / 350;
         const pattern = new PatternClass(x, y, scale);
         pattern.size = size;
-        
         this.patterns.push(pattern);
       }
-      
       attemptsCount++;
     }
-    
-    console.log(`Created ${this.patterns.length} patterns after ${attemptsCount} attempts`);
   }
-
+  getRandomPosition() {
+    const minSize = min(windowWidth, windowHeight) * 0.15;
+    const maxSize = min(windowWidth, windowHeight) * 0.25;
+    const size = random(minSize, maxSize);
+    const margin = size / 2;
+    const x = random(margin, windowWidth - margin);
+    const y = random(margin, windowHeight - margin);
+    return { x, y, size };
+  }
+  checkOverlap(x, y, size) {
+    for (let pattern of this.patterns) {
+      const dx = x - pattern.x;
+      const dy = y - pattern.y;
+      const distance = sqrt(dx * dx + dy * dy);
+      const minDistance = (size + pattern.size) / 2;
+      if (distance < minDistance) return true;
+    }
+    return false;
+  }
   draw() {
     this.patterns.sort((a, b) => b.size - a.size);
     this.patterns.forEach(pattern => pattern.draw());
   }
-
-  getPatternCount() {
-    return this.patterns.length;
-  }
 }
-
 function createMusicControls() {
-  //Creating a Play Button
   playButton = createButton('Play');
   playButton.position(20, 20);
   playButton.mousePressed(() => {
-    if (song && !song.isPlaying()) {
-      song.play();
-    }
+    if (song && !song.isPlaying()) song.play();
   });
-  playButton.class('control-button');
   
-  //Creating a Pause Button
   pauseButton = createButton('Pause');
   pauseButton.position(80, 20);
   pauseButton.mousePressed(() => {
-    if (song && song.isPlaying()) {
-      song.pause();
-    }
+    if (song && song.isPlaying()) song.pause();
   });
-  pauseButton.class('control-button');
-  
-  // Add button styles
-  //. represents a class selector
-  //which is used to select elements with the specified class
-  //.control-button will match elements with class="control-button"
-  let styles = `
-    .control-button {
-      padding: 8px 16px;
-      margin: 5px;
-      background-color: rgba(255, 255, 255, 0.8);
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-  
-  `;
-  
-  let styleSheet = document.createElement("style");
-  styleSheet.innerText = styles;
-  document.head.appendChild(styleSheet);
 }
-
 let patternManager;
-
 function setup() {
   createCanvas(windowWidth, windowHeight);
   patternManager = new PatternManager();
   patternManager.createPatterns();
-  
-  //Add music control buttons
   createMusicControls();
-  
-  //Initialize the audio analyzer
   analyser = new p5.FFT();
-  if (song) {
-    analyser.setInput(song);
-  }
+  if (song) analyser.setInput(song);
 }
-
 function draw() {
-  background(232,198,198,255);
+  background(232, 198, 198, 255);
   
-  patternManager.draw(); //Draw all patterns
+  if (song.isLoaded() && song.isPlaying()) {
+    patternManager.draw();
+  } else {
+    textAlign(CENTER, CENTER);
+    textSize(32);
+    fill(0);
+    text("Play music to start", width / 2, height / 2);
+  }
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   patternManager.createPatterns();
-  
-  //Reposition buttons
   playButton.position(20, 20);
   pauseButton.position(80, 20);
 }
+
 
